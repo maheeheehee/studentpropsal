@@ -35,43 +35,45 @@ tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician 
 
 # ---------------- USER DASHBOARD ----------------
 with tab1:
-    col1, col2 = st.columns(2)
+    st.markdown("### User Dashboard")
 
-    with col1:
-        st.markdown("### Weekly Behavioral Risk Index")
+    # --- Top row: summary cards ---
+    col1, col2, col3 = st.columns(3)
 
-        # Summary card
-        st.markdown(
-            f"""
-            <div style="padding:15px; border-radius:10px; border:1px solid #ccc; background-color:#f9f9f9;">
-            <h4 style="margin:0;">Current Score</h4>
-            <p style="font-size:22px; font-weight:bold; color:{'red' if last_score>0.7 else 'orange' if last_score>0.5 else 'green'};">
-            {last_score:.2f}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    col1.metric(label="Average Steps / Day", value="2,100", delta="-20% vs last week")
+    col2.metric(label="Average Sleep", value="5h 10m", delta="-1h 30m")
+    col3.metric(label="Mood Rating", value="2.3 / 5", delta="-0.7")
+
+    # --- Risk trend chart ---
+    line_chart = (
+        alt.Chart(df)
+        .mark_line(point=True, strokeWidth=3, color="#1f77b4")
+        .encode(
+            x=alt.X("Week:T", title="Week"),
+            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
+        .properties(width=600, height=280, title="Behavioral Risk Index (Weekly Trend)")
+    )
+    st.altair_chart(line_chart, use_container_width=True)
 
-    with col2:
-        # Line chart
-        line_chart = (
-            alt.Chart(df)
-            .mark_line(point=True, strokeWidth=3, color="#1f77b4")
-            .encode(
-                x=alt.X("Week:T", title="Week"),
-                y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
-            )
-            .properties(width=350, height=250, title="Risk Trend")
-        )
-        st.altair_chart(line_chart, use_container_width=True)
+    # --- Insights + Recommendations ---
+    st.markdown("#### Insights")
+    st.markdown(
+        """
+        - Your **mobility** dropped significantly this week (avg. 2,100 steps/day).  
+        - Your **sleep duration** decreased by 1.5 hours compared to last week.  
+        - Your **mood check-ins** show lower ratings with frequent 'tired' or 'sad' entries.  
+        """
+    )
 
-    # Feedback
+    st.markdown("#### Recommendation")
     if last_score > 0.7:
-        st.markdown("**Status:** High risk. Recommend clinician follow-up and intervention.")
+        st.warning("Your risk level is high. Please reach out to your clinician and consider immediate support.")
     elif last_score > 0.5:
-        st.markdown("**Status:** Moderate increase in risk. Monitor closely.")
+        st.info("Try to improve your sleep schedule and add short daily walks to stabilize your mood.")
     else:
-        st.markdown("**Status:** Stable. No immediate concerns.")
+        st.success("Keep maintaining consistent sleep and physical activity. Great work!")
+
 
 # ---------------- CLINICIAN DASHBOARD ----------------
 with tab2:
