@@ -29,7 +29,7 @@ stressor_list = ["Work stress", "Insomnia", "Family conflict", "Social withdrawa
 last_score = df["BRI Score"].iloc[-1]
 
 # -----------------------------
-# Tabs
+# Tabs for dashboards
 # -----------------------------
 tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician Panel"])
 
@@ -39,7 +39,6 @@ with tab1:
 
     # --- Top row: summary cards ---
     col1, col2, col3 = st.columns(3)
-
     col1.metric(label="Average Steps / Day", value="2,100", delta="-20% vs last week")
     col2.metric(label="Average Sleep", value="5h 10m", delta="-1h 30m")
     col3.metric(label="Mood Rating", value="2.3 / 5", delta="-0.7")
@@ -47,55 +46,61 @@ with tab1:
     # --- Risk trend chart ---
     line_chart = (
         alt.Chart(df)
-        .mark_line(point=True, strokeWidth=3, color="#1f77b4")
+        .mark_line(point=True, strokeWidth=3, color="#1f77b4")  # soft blue
         .encode(
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
         .properties(width=600, height=280, title="Behavioral Risk Index (Weekly Trend)")
+        .configure_axis(grid=True, gridColor="#e6e6e6")
+        .configure_view(strokeWidth=0)
+        .configure_title(fontSize=14, color="#333")
     )
     st.altair_chart(line_chart, use_container_width=True)
 
-    # --- Insights + Recommendations ---
+    # --- Insights ---
     st.markdown("#### Insights")
     st.markdown(
         """
-        - Your **mobility** dropped significantly this week (avg. 2,100 steps/day).  
-        - Your **sleep duration** decreased by 1.5 hours compared to last week.  
-        - Your **mood check-ins** show lower ratings with frequent 'tired' or 'sad' entries.  
+        - **Mobility** dropped significantly this week (avg. 2,100 steps/day).  
+        - **Sleep duration** decreased by 1.5 hours compared to last week.  
+        - **Mood check-ins** show lower ratings with frequent *tired* or *sad* entries.  
         """
     )
 
+    # --- Recommendations ---
     st.markdown("#### Recommendation")
     if last_score > 0.7:
-        st.warning("Your risk level is high. Please reach out to your clinician and consider immediate support.")
+        st.warning("High risk detected. Please reach out to your clinician and consider immediate support.")
     elif last_score > 0.5:
-        st.info("Try to improve your sleep schedule and add short daily walks to stabilize your mood.")
+        st.info("Your risk level has increased. Improving sleep and adding short daily walks may help stabilize mood.")
     else:
-        st.success("Keep maintaining consistent sleep and physical activity. Great work!")
-
+        st.success("Your risk level is stable. Keep maintaining consistent sleep and physical activity.")
 
 # ---------------- CLINICIAN DASHBOARD ----------------
 with tab2:
-    st.markdown("### Single Patient Risk Breakdown")
+    st.markdown("### Clinician Dashboard")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        # Contributions
+        # Contributions chart
         bar_chart = (
             alt.Chart(contrib_df)
-            .mark_bar(color="#ff7f0e")
+            .mark_bar(color="#ff7f0e")  # orange
             .encode(
                 x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
                 y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
             )
             .properties(width=350, height=250, title="Risk Contribution Breakdown")
+            .configure_axis(grid=True, gridColor="#e6e6e6")
+            .configure_view(strokeWidth=0)
+            .configure_title(fontSize=14, color="#333")
         )
         st.altair_chart(bar_chart, use_container_width=True)
 
     with col2:
-        # Alert card
+        # Risk status card
         if last_score > 0.7:
             st.markdown(
                 """
@@ -133,21 +138,37 @@ with tab3:
     status = ["High" if s > 0.7 else "Moderate" if s > 0.5 else "Stable" for s in bri_scores]
     patient_df = pd.DataFrame({"Patient": patients, "BRI Score": bri_scores, "Status": status})
 
-    # Table view
-    st.dataframe(patient_df.style.apply(
-        lambda x: ["background-color: #ffe6e6" if v=="High" else "background-color: #fff4e6" if v=="Moderate" else "background-color: #e6ffe6" for v in x],
-        subset=["Status"]
-    ))
+    # Table view with color coding
+    st.dataframe(
+        patient_df.style.apply(
+            lambda x: [
+                "background-color: #ffe6e6" if v == "High" else
+                "background-color: #fff4e6" if v == "Moderate" else
+                "background-color: #e6ffe6" for v in x
+            ],
+            subset=["Status"]
+        )
+    )
 
     # Distribution chart
     dist_chart = (
         alt.Chart(patient_df)
         .mark_bar()
         .encode(
-            x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10)),
-            y="count()",
-            color=alt.Color("Status:N", scale=alt.Scale(domain=["High","Moderate","Stable"], range=["#b30000","#ff7f0e","#1f77b4"]))
+            x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10), title="BRI Score"),
+            y=alt.Y("count()", title="Number of Patients"),
+            color=alt.Color(
+                "Status:N",
+                scale=alt.Scale(
+                    domain=["High", "Moderate", "Stable"],
+                    range=["#b30000", "#ff7f0e", "#1f77b4"],  # red, orange, blue
+                ),
+                legend=alt.Legend(title="Status"),
+            ),
         )
         .properties(width=600, height=300, title="Distribution of BRI Scores Across Patients")
+        .configure_axis(grid=True, gridColor="#e6e6e6")
+        .configure_view(strokeWidth=0)
+        .configure_title(fontSize=14, color="#333")
     )
     st.altair_chart(dist_chart, use_container_width=True)
