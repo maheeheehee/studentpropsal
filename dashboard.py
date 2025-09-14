@@ -1,7 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
@@ -10,6 +8,7 @@ st.title("🧠 BRI-MH: Behavioral Risk Index for Mental Health")
 # Fake example weekly data
 weeks = pd.date_range("2025-07-01", periods=8, freq="W")
 risk_scores = [0.32, 0.41, 0.45, 0.60, 0.52, 0.68, 0.72, 0.65]
+df = pd.DataFrame({"Week": weeks, "BRI Score": risk_scores}).set_index("Week")
 
 # Risk contributions for last week (example values)
 contributions = {
@@ -18,6 +17,7 @@ contributions = {
     "Poor Sleep": 0.20,
     "Mood Check-ins": 0.10,
 }
+contrib_df = pd.DataFrame.from_dict(contributions, orient="index", columns=["Contribution"])
 
 # Tabs for User and Clinician views
 tab1, tab2 = st.tabs(["👤 User Dashboard", "👩‍⚕️ Clinician Dashboard"])
@@ -25,15 +25,8 @@ tab1, tab2 = st.tabs(["👤 User Dashboard", "👩‍⚕️ Clinician Dashboard"
 with tab1:
     st.subheader("Your Weekly Risk Index")
     
-    # Plot risk trend
-    fig, ax = plt.subplots()
-    ax.plot(weeks, risk_scores, marker="o", linestyle="-")
-    ax.axhline(0.7, color="red", linestyle="--", label="High Risk Threshold")
-    ax.set_ylim(0, 1)
-    ax.set_ylabel("BRI Score")
-    ax.set_title("Weekly Risk Trend")
-    ax.legend()
-    st.pyplot(fig)
+    # Line chart of BRI scores
+    st.line_chart(df)
 
     # Simple feedback message
     last_score = risk_scores[-1]
@@ -48,9 +41,6 @@ with tab2:
     st.subheader("Clinician View: Risk Breakdown")
 
     # Bar chart of contributions
-    contrib_df = pd.DataFrame.from_dict(contributions, orient="index", columns=["Contribution"])
-    contrib_df = contrib_df.sort_values("Contribution", ascending=False)
-
     st.bar_chart(contrib_df)
 
     # Alert if high risk
