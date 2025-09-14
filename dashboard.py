@@ -43,18 +43,18 @@ with tab1:
     col2.metric(label="Average Sleep", value="5h 10m", delta="-1h 30m")
     col3.metric(label="Mood Rating", value="2.3 / 5", delta="-0.7")
 
-    # --- Risk trend chart ---
+    # --- Risk trend chart (line with markers for grayscale) ---
     line_chart = (
         alt.Chart(df)
-        .mark_line(point=True, strokeWidth=3, color="#1f77b4")  # soft blue
+        .mark_line(point=alt.OverlayMarkDef(filled=True, size=80, shape="square"), strokeDash=[5,2], color="black")
         .encode(
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
         .properties(width=600, height=280, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(grid=True, gridColor="#e6e6e6")
+        .configure_axis(grid=True, gridColor="#d9d9d9")
         .configure_view(strokeWidth=0)
-        .configure_title(fontSize=14, color="#333")
+        .configure_title(fontSize=14, color="black")
     )
     st.altair_chart(line_chart, use_container_width=True)
 
@@ -71,11 +71,11 @@ with tab1:
     # --- Recommendations ---
     st.markdown("#### Recommendation")
     if last_score > 0.7:
-        st.warning("High risk detected. Please reach out to your clinician and consider immediate support.")
+        st.markdown("**[HIGH RISK]** Patient should seek immediate clinical support.")
     elif last_score > 0.5:
-        st.info("Your risk level has increased. Improving sleep and adding short daily walks may help stabilize mood.")
+        st.markdown("**[MODERATE RISK]** Encourage improved sleep and activity routines.")
     else:
-        st.success("Your risk level is stable. Keep maintaining consistent sleep and physical activity.")
+        st.markdown("**[STABLE]** Continue consistent behavior. No immediate concerns.")
 
 # ---------------- CLINICIAN DASHBOARD ----------------
 with tab2:
@@ -84,45 +84,30 @@ with tab2:
     col1, col2 = st.columns(2)
 
     with col1:
-        # Contributions chart
+        # Contributions chart (shaded bars in grayscale)
         bar_chart = (
             alt.Chart(contrib_df)
-            .mark_bar(color="#ff7f0e")  # orange
+            .mark_bar(color="gray")
             .encode(
                 x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
                 y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
+                tooltip=["Factor", "Contribution"],
             )
             .properties(width=350, height=250, title="Risk Contribution Breakdown")
-            .configure_axis(grid=True, gridColor="#e6e6e6")
+            .configure_axis(grid=True, gridColor="#d9d9d9")
             .configure_view(strokeWidth=0)
-            .configure_title(fontSize=14, color="#333")
+            .configure_title(fontSize=14, color="black")
         )
         st.altair_chart(bar_chart, use_container_width=True)
 
     with col2:
-        # Risk status card
+        # Risk status box (text emphasis, not just color)
         if last_score > 0.7:
-            st.markdown(
-                """
-                <div style="padding:15px; border-radius:10px; border:1px solid #ccc; background-color:#ffe6e6;">
-                <h4 style="margin:0; color:#b30000;">Alert: High Risk</h4>
-                <p style="margin:0;">Patient’s Behavioral Risk Index is 0.72. 
-                Major contributors: Negative Sentiment and Reduced Mobility.</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.markdown("#### Risk Status: **HIGH**\nPatient BRI = 0.72\nMain contributors: Negative Sentiment, Reduced Mobility")
+        elif last_score > 0.5:
+            st.markdown(f"#### Risk Status: **MODERATE**\nPatient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
         else:
-            st.markdown(
-                f"""
-                <div style="padding:15px; border-radius:10px; border:1px solid #ccc; background-color:#f2f2f2;">
-                <h4 style="margin:0; color:#333;">Risk Status</h4>
-                <p style="margin:0;">Patient’s Behavioral Risk Index is {last_score:.2f}. 
-                Continue monitoring for changes.</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.markdown(f"#### Risk Status: **STABLE**\nPatient BRI = {last_score:.2f}\nContinue monitoring.")
 
         st.markdown("**Detected Cognitive Stressors:**")
         st.markdown(", ".join(stressor_list))
@@ -138,37 +123,21 @@ with tab3:
     status = ["High" if s > 0.7 else "Moderate" if s > 0.5 else "Stable" for s in bri_scores]
     patient_df = pd.DataFrame({"Patient": patients, "BRI Score": bri_scores, "Status": status})
 
-    # Table view with color coding
-    st.dataframe(
-        patient_df.style.apply(
-            lambda x: [
-                "background-color: #ffe6e6" if v == "High" else
-                "background-color: #fff4e6" if v == "Moderate" else
-                "background-color: #e6ffe6" for v in x
-            ],
-            subset=["Status"]
-        )
-    )
+    # Table (text-only for grayscale clarity)
+    st.table(patient_df)
 
-    # Distribution chart
+    # Histogram with grayscale shading
     dist_chart = (
         alt.Chart(patient_df)
-        .mark_bar()
+        .mark_bar(color="gray")
         .encode(
             x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10), title="BRI Score"),
             y=alt.Y("count()", title="Number of Patients"),
-            color=alt.Color(
-                "Status:N",
-                scale=alt.Scale(
-                    domain=["High", "Moderate", "Stable"],
-                    range=["#b30000", "#ff7f0e", "#1f77b4"],  # red, orange, blue
-                ),
-                legend=alt.Legend(title="Status"),
-            ),
+            tooltip=["count()"],
         )
         .properties(width=600, height=300, title="Distribution of BRI Scores Across Patients")
-        .configure_axis(grid=True, gridColor="#e6e6e6")
+        .configure_axis(grid=True, gridColor="#d9d9d9")
         .configure_view(strokeWidth=0)
-        .configure_title(fontSize=14, color="#333")
+        .configure_title(fontSize=14, color="black")
     )
     st.altair_chart(dist_chart, use_container_width=True)
