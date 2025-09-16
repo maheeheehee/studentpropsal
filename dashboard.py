@@ -81,37 +81,35 @@ with tab1:
 with tab2:
     st.markdown("### Clinician Dashboard")
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        # Contributions chart (shaded bars in grayscale)
-        bar_chart = (
-            alt.Chart(contrib_df)
-            .mark_bar(color="gray")
-            .encode(
-                x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
-                y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
-                tooltip=["Factor", "Contribution"],
-            )
-            .properties(width=350, height=250, title="Risk Contribution Breakdown")
-            .configure_axis(grid=True, gridColor="#d9d9d9")
-            .configure_view(strokeWidth=0)
-            .configure_title(fontSize=14, color="black")
+    # Contributions chart (shaded bars in grayscale)
+    bar_chart = (
+        alt.Chart(contrib_df)
+        .mark_bar(color="gray")
+        .encode(
+            x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
+            y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
+            tooltip=["Factor", "Contribution"],
         )
-        st.altair_chart(bar_chart, use_container_width=True)
+        .properties(width=450, height=250, title="Risk Contribution Breakdown")
+        .configure_axis(grid=True, gridColor="#d9d9d9")
+        .configure_view(strokeWidth=0)
+        .configure_title(fontSize=14, color="black")
+    )
+    st.altair_chart(bar_chart, use_container_width=True)
 
-    with col2:
-        # Risk status box (text emphasis, not just color)
-        if last_score > 0.7:
-            st.markdown("#### Risk Status: **HIGH**\nPatient BRI = 0.72\nMain contributors: Negative Sentiment, Reduced Mobility")
-        elif last_score > 0.5:
-            st.markdown(f"#### Risk Status: **MODERATE**\nPatient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
-        else:
-            st.markdown(f"#### Risk Status: **STABLE**\nPatient BRI = {last_score:.2f}\nContinue monitoring.")
+    # --- Risk status under the chart ---
+    if last_score > 0.7:
+        st.markdown("#### Risk Status: **HIGH**")
+        st.markdown(f"Patient BRI = {last_score:.2f}  \nMain contributors: Negative Sentiment, Reduced Mobility")
+    elif last_score > 0.5:
+        st.markdown("#### Risk Status: **MODERATE**")
+        st.markdown(f"Patient BRI = {last_score:.2f}  \nContributors: Sleep, Mood Variability")
+    else:
+        st.markdown("#### Risk Status: **STABLE**")
+        st.markdown(f"Patient BRI = {last_score:.2f}  \nContinue monitoring.")
 
-        st.markdown("**Detected Cognitive Stressors:**")
-        st.markdown(", ".join(stressor_list))
-
+    st.markdown("**Detected Cognitive Stressors:**")
+    st.markdown(", ".join(stressor_list))
 # ---------------- CLINICIAN PANEL ----------------
 with tab3:
     st.markdown("### Multi-Patient Overview")
