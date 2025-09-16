@@ -5,22 +5,18 @@ import numpy as np
 
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
-# ========================
-# Global text size bump
-# ========================
+# Global CSS to enlarge Markdown text
 st.markdown(
     """
     <style>
-    html, body, [class*="css"]  {
-        font-size: 20px !important;   /* base text */
-    }
-    h1 { font-size: 36px !important; }
-    h2 { font-size: 30px !important; }
-    h3 { font-size: 26px !important; }
-    h4, h5, h6 { font-size: 22px !important; }
+    h1 {font-size:36px !important;}
+    h2 {font-size:30px !important;}
+    h3 {font-size:26px !important;}
+    h4 {font-size:22px !important;}
+    p, li {font-size:20px !important;}
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
 st.title("BRI-MH: Behavioral Risk Index for Mental Health")
@@ -69,7 +65,7 @@ with tab1:
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
-        .properties(width=600, height=280, title="Behavioral Risk Index (Weekly Trend)")
+        .properties(width=600, height=320, title="Behavioral Risk Index (Weekly Trend)")
         .configure_axis(
             grid=True, gridColor="#d9d9d9",
             labelFontSize=16, titleFontSize=18
@@ -103,17 +99,22 @@ with tab2:
     st.markdown("### Clinician Dashboard")
 
     # Make chart span from left to a bit past middle
-    col_chart, col_space = st.columns([2, 1])
+    col_chart, col_space = st.columns([2, 1])  # chart gets 2/3 width
     with col_chart:
         bar_chart = (
             alt.Chart(contrib_df)
             .mark_bar(color="gray")
             .encode(
                 x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
-                y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
+                y=alt.Y(
+                    "Factor:N",
+                    sort="-x",
+                    title="Risk Factor",
+                    axis=alt.Axis(labelLimit=500)  # prevent "..."
+                ),
                 tooltip=["Factor", "Contribution"],
             )
-            .properties(width=500, height=280, title="Risk Contribution Breakdown")
+            .properties(width=500, height=300, title="Risk Contribution Breakdown")
             .configure_axis(
                 grid=True, gridColor="#d9d9d9",
                 labelFontSize=16, titleFontSize=18
@@ -162,7 +163,7 @@ with tab3:
             y=alt.Y("count()", title="Number of Patients"),
             tooltip=["count()"],
         )
-        .properties(width=600, height=300, title="Distribution of BRI Scores Across Patients")
+        .properties(width=600, height=320, title="Distribution of BRI Scores Across Patients")
         .configure_axis(
             grid=True, gridColor="#d9d9d9",
             labelFontSize=16, titleFontSize=18
