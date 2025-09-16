@@ -81,9 +81,9 @@ with tab1:
 with tab2:
     st.markdown("### Clinician Dashboard")
 
-    # Put chart in a centered column layout
-    left, center, right = st.columns([1, 2, 1])  # middle col is wider
-    with center:
+    # Make chart span from left to a bit past middle
+    col_chart, col_space = st.columns([2, 1])  # chart gets 2/3 width
+    with col_chart:
         bar_chart = (
             alt.Chart(contrib_df)
             .mark_bar(color="gray")
@@ -92,15 +92,15 @@ with tab2:
                 y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
                 tooltip=["Factor", "Contribution"],
             )
-            .properties(width=400, height=250, title="Risk Contribution Breakdown")
+            .properties(width=500, height=280, title="Risk Contribution Breakdown")
             .configure_axis(grid=True, gridColor="#d9d9d9")
             .configure_view(strokeWidth=0)
             .configure_title(fontSize=14, color="black")
         )
-        st.altair_chart(bar_chart, use_container_width=False)
+        st.altair_chart(bar_chart, use_container_width=True)
 
     # --- Risk status under the chart ---
-    st.markdown("---")  # nice separator
+    st.markdown("---")  # separator
 
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
@@ -114,6 +114,7 @@ with tab2:
 
     st.markdown("**Detected Cognitive Stressors:**")
     st.markdown(", ".join(stressor_list))
+
 # ---------------- CLINICIAN PANEL ----------------
 with tab3:
     st.markdown("### Multi-Patient Overview")
