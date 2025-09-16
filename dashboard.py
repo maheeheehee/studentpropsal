@@ -5,6 +5,24 @@ import numpy as np
 
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
+# ========================
+# Global text size bump
+# ========================
+st.markdown(
+    """
+    <style>
+    html, body, [class*="css"]  {
+        font-size: 20px !important;   /* base text */
+    }
+    h1 { font-size: 36px !important; }
+    h2 { font-size: 30px !important; }
+    h3 { font-size: 26px !important; }
+    h4, h5, h6 { font-size: 22px !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("BRI-MH: Behavioral Risk Index for Mental Health")
 
 # -----------------------------
@@ -43,18 +61,21 @@ with tab1:
     col2.metric(label="Average Sleep", value="5h 10m", delta="-1h 30m")
     col3.metric(label="Mood Rating", value="2.3 / 5", delta="-0.7")
 
-    # --- Risk trend chart (line with markers for grayscale) ---
+    # --- Risk trend chart ---
     line_chart = (
         alt.Chart(df)
-        .mark_line(point=alt.OverlayMarkDef(filled=True, size=80, shape="square"), strokeDash=[5,2], color="black")
+        .mark_line(point=alt.OverlayMarkDef(filled=True, size=100, shape="square"), strokeDash=[5,2], color="black")
         .encode(
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
         .properties(width=600, height=280, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(grid=True, gridColor="#d9d9d9")
+        .configure_axis(
+            grid=True, gridColor="#d9d9d9",
+            labelFontSize=16, titleFontSize=18
+        )
         .configure_view(strokeWidth=0)
-        .configure_title(fontSize=14, color="black")
+        .configure_title(fontSize=20, color="black")
     )
     st.altair_chart(line_chart, use_container_width=True)
 
@@ -82,7 +103,7 @@ with tab2:
     st.markdown("### Clinician Dashboard")
 
     # Make chart span from left to a bit past middle
-    col_chart, col_space = st.columns([2, 1])  # chart gets 2/3 width
+    col_chart, col_space = st.columns([2, 1])
     with col_chart:
         bar_chart = (
             alt.Chart(contrib_df)
@@ -93,14 +114,17 @@ with tab2:
                 tooltip=["Factor", "Contribution"],
             )
             .properties(width=500, height=280, title="Risk Contribution Breakdown")
-            .configure_axis(grid=True, gridColor="#d9d9d9")
+            .configure_axis(
+                grid=True, gridColor="#d9d9d9",
+                labelFontSize=16, titleFontSize=18
+            )
             .configure_view(strokeWidth=0)
-            .configure_title(fontSize=14, color="black")
+            .configure_title(fontSize=20, color="black")
         )
         st.altair_chart(bar_chart, use_container_width=True)
 
     # --- Risk status under the chart ---
-    st.markdown("---")  # separator
+    st.markdown("---")
 
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
@@ -126,10 +150,10 @@ with tab3:
     status = ["High" if s > 0.7 else "Moderate" if s > 0.5 else "Stable" for s in bri_scores]
     patient_df = pd.DataFrame({"Patient": patients, "BRI Score": bri_scores, "Status": status})
 
-    # Table (text-only for grayscale clarity)
+    # Table
     st.table(patient_df)
 
-    # Histogram with grayscale shading
+    # Histogram
     dist_chart = (
         alt.Chart(patient_df)
         .mark_bar(color="gray")
@@ -139,8 +163,11 @@ with tab3:
             tooltip=["count()"],
         )
         .properties(width=600, height=300, title="Distribution of BRI Scores Across Patients")
-        .configure_axis(grid=True, gridColor="#d9d9d9")
+        .configure_axis(
+            grid=True, gridColor="#d9d9d9",
+            labelFontSize=16, titleFontSize=18
+        )
         .configure_view(strokeWidth=0)
-        .configure_title(fontSize=14, color="black")
+        .configure_title(fontSize=20, color="black")
     )
     st.altair_chart(dist_chart, use_container_width=True)
