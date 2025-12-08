@@ -16,6 +16,7 @@ st.markdown(
     [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
         font-size: 1.4vw !important;
         line-height: 1.2 !important;
+        color: black !important;
     }
 
     .block-container {
@@ -27,29 +28,6 @@ st.markdown(
 
     .vega-embed, canvas {
         height: auto !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# -------------------------------------------------------
-# CHART LABEL OVERRIDES — BIG TEXT FOR SCREENSHOT
-# -------------------------------------------------------
-st.markdown(
-    """
-    <style>
-    .vega-embed text {
-        font-size: 36px !important;
-        font-weight: 600 !important;
-    }
-    .vega-embed .role-axis-title {
-        font-size: 40px !important;
-        font-weight: 700 !important;
-    }
-    .vega-embed .role-axis-label {
-        font-size: 36px !important;
-        font-weight: 600 !important;
     }
     </style>
     """,
@@ -80,6 +58,8 @@ last_score = df["BRI Score"].iloc[-1]
 # -------------------------------------------------------
 tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician Panel"])
 
+
+
 # -------------------------------------------------------
 # USER DASHBOARD
 # -------------------------------------------------------
@@ -91,7 +71,6 @@ with tab1:
     col2.metric("Average Sleep", "5h 10m", "-1h 30m")
     col3.metric("Mood Rating", "2.3 / 5", "-0.7")
 
-    # Trend chart
     line_chart = (
         alt.Chart(df)
         .mark_line(
@@ -104,15 +83,15 @@ with tab1:
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0, 1])),
         )
         .properties(width="container", height=320, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(labelFontSize=22, titleFontSize=26)
-        .configure_title(fontSize=28)
+        .configure_axis(labelFontSize=22, titleFontSize=26, labelColor="black", titleColor="black")
+        .configure_title(fontSize=28, color="black")
     )
     st.altair_chart(line_chart, use_container_width=True)
 
     st.markdown("#### Insights")
     st.markdown("""
         - **Mobility** dropped significantly this week.  
-        - **Sleep** reduced by 1.5 hours.  
+        - **Sleep** decreased by 1.5 hours.  
         - **Mood check-ins** show frequent tired/sad entries.  
     """)
 
@@ -120,59 +99,64 @@ with tab1:
     if last_score > 0.7:
         st.markdown("**[HIGH RISK]** Seek immediate clinical support.")
     elif last_score > 0.5:
-        st.markdown("**[MODERATE RISK]** Improve sleep & mood routines.")
+        st.markdown("**[MODERATE RISK]** Improve sleep and mood routines.")
     else:
         st.markdown("**[STABLE]** No immediate concerns.")
 
 
+
 # -------------------------------------------------------
-# CLINICIAN DASHBOARD (FIXED)
+# CLINICIAN DASHBOARD (FINAL FIXED CHART)
 # -------------------------------------------------------
 with tab2:
     st.markdown("### Clinician Dashboard")
 
     # ------------------------------
-    # FIXED LARGE BAR CHART
+    # FINAL FIXED BAR CHART
     # ------------------------------
     bar_chart = (
         alt.Chart(contrib_df)
-        .mark_bar(size=120, color="gray")
+        .mark_bar(size=90, color="gray")
         .encode(
-            x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
-            y=alt.Y(
-                "Factor:N",
-                sort="-x",
-                title="Risk Factor",
-                axis=alt.Axis(
-                    labelFontSize=36,
-                    titleFontSize=40,
-                    labelLimit=1000
-                )
-            ),
+            x=alt.X("Contribution:Q",
+                    title="Contribution (Proportion)"),
+            y=alt.Y("Factor:N",
+                    sort="-x",
+                    title="Risk Factor",
+                    axis=alt.Axis(
+                        labelAngle=0,         # Horizontal labels
+                        labelFontSize=30,
+                        labelColor="black",
+                        titleFontSize=34,
+                        titleColor="black",
+                        labelLimit=5000
+                    )),
             tooltip=["Factor", "Contribution"]
         )
         .properties(
-            width=1200,          # FIXED WIDTH (no compression)
-            height=600,          # BIG HEIGHT (readable)
+            width=1100,   # Fixed size → no shrink
+            height=500,
             title=alt.TitleParams(
                 "Risk Contribution Breakdown",
-                fontSize=42
+                fontSize=38,
+                color="black"
             )
         )
+        .configure_padding(left=200)     # Space for labels
         .configure_axis(
-            labelFontSize=36,
-            titleFontSize=40
+            labelColor="black",
+            titleColor="black"
         )
+        .configure_view(strokeWidth=0)
     )
 
     st.altair_chart(bar_chart, use_container_width=False)
 
     st.markdown("---")
 
-    # Risk Status
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
-        st.markdown(f"Patient BRI = {last_score:.2f}\nMain: Negative Sentiment, Low Mobility")
+        st.markdown(f"Patient BRI = {last_score:.2f}\nMain contributors: Negative Sentiment, Low Mobility")
     elif last_score > 0.5:
         st.markdown("#### Risk Status: **MODERATE**")
         st.markdown(f"Patient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
@@ -182,6 +166,7 @@ with tab2:
 
     st.markdown("**Detected Cognitive Stressors:**")
     st.markdown(", ".join(stressor_list))
+
 
 
 # -------------------------------------------------------
@@ -207,8 +192,7 @@ with tab3:
             y=alt.Y("count()", title="Number of Patients")
         )
         .properties(width="container", height=300, title="Distribution of BRI Scores Across Patients")
-        .configure_axis(labelFontSize=22, titleFontSize=26)
-        .configure_title(fontSize=28)
+        .configure_axis(labelFontSize=22, titleFontSize=26, labelColor="black", titleColor="black")
+        .configure_title(fontSize=28, color="black")
     )
-
     st.altair_chart(dist_chart, use_container_width=True)
