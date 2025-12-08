@@ -11,7 +11,7 @@ st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 st.markdown(
     """
     <style>
-    /* Uniform moderate-large text everywhere */
+    /* Uniform large readable text */
     html, body, p, div, span, label, h1, h2, h3, h4, h5, h6,
     table, th, td, [data-testid="stMetricValue"],
     [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
@@ -19,7 +19,7 @@ st.markdown(
         line-height: 1.2 !important;
     }
 
-    /* Reduce Streamlit layout padding to avoid scrolling */
+    /* Reduce Streamlit padding to avoid scrolling */
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 0.5rem !important;
@@ -27,7 +27,7 @@ st.markdown(
         padding-right: 1rem !important;
     }
 
-    /* Ensure charts fit screen */
+    /* Ensure charts fit container */
     .vega-embed, canvas {
         max-width: 100% !important;
         height: auto !important;
@@ -38,13 +38,13 @@ st.markdown(
 )
 
 # -------------------------------------------------------
-# FIX CHART LABEL VISIBILITY (absolute px text)
+# FIX CHART LABEL VISIBILITY
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
     .vega-embed text {
-        font-size: 22px !important; /* readable and consistent */
+        font-size: 22px !important;
     }
     .vega-embed .mark-text {
         font-size: 22px !important;
@@ -130,33 +130,43 @@ with tab1:
 with tab2:
     st.markdown("### Clinician Dashboard")
 
-    col_chart, col_space = st.columns([2, 1])
-    with col_chart:
-        bar_chart = (
-            alt.Chart(contrib_df)
-            .mark_bar(size=50, color="gray")
-            .encode(
-                x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
-                y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
-                tooltip=["Factor", "Contribution"]
-            )
-            .properties(width="container", height=300, title="Risk Contribution Breakdown")
-            .configure_axis(labelFontSize=22, titleFontSize=26)
-            .configure_title(fontSize=28)
+    # Risk Breakdown Bar Chart (FIXED VERSION)
+    bar_chart = (
+        alt.Chart(contrib_df)
+        .mark_bar(size=70, color="gray")  # thicker bars so labels align
+        .encode(
+            x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
+            y=alt.Y(
+                "Factor:N",
+                sort="-x",
+                title="Risk Factor",
+                axis=alt.Axis(labelFontSize=24, titleFontSize=26, labelLimit=1000)  # FULL LABEL
+            ),
+            tooltip=["Factor", "Contribution"]
         )
-        st.altair_chart(bar_chart, use_container_width=True)
+        .properties(
+            width="container",
+            height=450,  # <-- BIGGER HEIGHT to prevent clipping
+            title="Risk Contribution Breakdown"
+        )
+        .configure_axis(labelFontSize=24, titleFontSize=26)
+        .configure_title(fontSize=30)
+    )
+
+    st.altair_chart(bar_chart, use_container_width=True)
 
     st.markdown("---")
 
+    # Risk status
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
-        st.markdown(f"Patient BRI = {last_score:.2f}  \nMain contributors: Negative Sentiment, Reduced Mobility")
+        st.markdown(f"Patient BRI = {last_score:.2f}\nMain contributors: Negative Sentiment, Reduced Mobility")
     elif last_score > 0.5:
         st.markdown("#### Risk Status: **MODERATE**")
-        st.markdown(f"Patient BRI = {last_score:.2f}  \nContributors: Sleep, Mood Variability")
+        st.markdown(f"Patient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
     else:
         st.markdown("#### Risk Status: **STABLE**")
-        st.markdown(f"Patient BRI = {last_score:.2f}  \nContinue monitoring.")
+        st.markdown(f"Patient BRI = {last_score:.2f}\nContinue monitoring.")
 
     st.markdown("**Detected Cognitive Stressors:**")
     st.markdown(", ".join(stressor_list))
