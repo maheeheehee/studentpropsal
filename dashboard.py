@@ -53,11 +53,11 @@ stressor_list = ["Work stress", "Insomnia", "Family conflict", "Social withdrawa
 
 last_score = df["BRI Score"].iloc[-1]
 
+
 # -------------------------------------------------------
 # TABS
 # -------------------------------------------------------
 tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician Panel"])
-
 
 
 # -------------------------------------------------------
@@ -82,8 +82,17 @@ with tab1:
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0, 1])),
         )
-        .properties(width="container", height=320, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(labelFontSize=22, titleFontSize=26, labelColor="black", titleColor="black")
+        .properties(
+            width="container",
+            height=320,
+            title="Behavioral Risk Index (Weekly Trend)"
+        )
+        .configure_axis(
+            labelFontSize=22,
+            titleFontSize=26,
+            labelColor="black",
+            titleColor="black"
+        )
         .configure_title(fontSize=28, color="black")
     )
     st.altair_chart(line_chart, use_container_width=True)
@@ -106,7 +115,7 @@ with tab1:
 
 
 # -------------------------------------------------------
-# CLINICIAN DASHBOARD (FINAL FIXED CHART)
+# CLINICIAN DASHBOARD (FINAL FIXED BAR CHART)
 # -------------------------------------------------------
 with tab2:
     st.markdown("### Clinician Dashboard")
@@ -120,29 +129,31 @@ with tab2:
         .encode(
             x=alt.X("Contribution:Q",
                     title="Contribution (Proportion)"),
-            y=alt.Y("Factor:N",
-                    sort="-x",
-                    title="Risk Factor",
-                    axis=alt.Axis(
-                        labelAngle=0,         # Horizontal labels
-                        labelFontSize=30,
-                        labelColor="black",
-                        titleFontSize=34,
-                        titleColor="black",
-                        labelLimit=5000
-                    )),
+            y=alt.Y(
+                "Factor:N",
+                sort="-x",
+                title="Risk Factor",
+                axis=alt.Axis(
+                    labelAngle=0,         # Horizontal labels
+                    labelFontSize=30,
+                    labelColor="black",
+                    titleFontSize=34,
+                    titleColor="black",
+                    labelLimit=5000      # Never truncate
+                )
+            ),
             tooltip=["Factor", "Contribution"]
         )
         .properties(
-            width=1100,   # Fixed size → no shrink
-            height=500,
+            width=1100,    # Fixed width for readability
+            height=500,    # Large screenshot-friendly height
+            padding={"left": 200},   # Extra left space for long labels
             title=alt.TitleParams(
                 "Risk Contribution Breakdown",
                 fontSize=38,
                 color="black"
             )
         )
-        .configure_padding(left=200)     # Space for labels
         .configure_axis(
             labelColor="black",
             titleColor="black"
