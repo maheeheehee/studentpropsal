@@ -140,34 +140,42 @@ with tab2:
 
     # --- FINAL FIXED BAR CHART ---
     bar_chart = (
-        alt.Chart(contrib_df)
-        .mark_bar(size=90, color="gray")  # thick bars for screenshot clarity
-        .encode(
-            x=alt.X(
-                "Contribution:Q",
-                title="Contribution (Proportion)"
-            ),
-            y=alt.Y(
-                "Factor:N",
-                sort="-x",
-                title="Risk Factor",
-                axis=alt.Axis(
-                    labelFontSize=28,
-                    titleFontSize=30,
-                    labelLimit=1000
-                )
-            ),
-            tooltip=["Factor", "Contribution"]
-        )
-        .properties(
-            width="container",
-            height=500,       # tall for readability + screenshot
-            title="Risk Contribution Breakdown"
-        )
-        .configure_title(fontSize=32)
+    alt.Chart(contrib_df)
+    .mark_bar(size=120, color="gray")
+    .encode(
+        x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
+        y=alt.Y(
+            "Factor:N",
+            sort="-x",
+            title="Risk Factor",
+            axis=alt.Axis(
+                labelFontSize=36,    # BIG labels
+                titleFontSize=40,
+                labelLimit=1000
+            )
+        ),
+        tooltip=["Factor", "Contribution"]
     )
+    .properties(
+        width=1200,     # FIXED WIDTH (no compression)
+        height=600,     # LARGE HEIGHT
+        title=alt.TitleParams(
+            "Risk Contribution Breakdown",
+            fontSize=42
+        )
+    )
+    .configure_axis(
+        labelFontSize=36,
+        titleFontSize=40
+    )
+    .configure_title(
+        fontSize=42
+    )
+)
 
-    st.altair_chart(bar_chart, use_container_width=True)
+# IMPORTANT: DO NOT USE use_container_width=True
+st.altair_chart(bar_chart, use_container_width=False)
+
 
     st.markdown("---")
 
