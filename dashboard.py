@@ -6,20 +6,20 @@ import numpy as np
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
 # -------------------------------------------------------
-# GLOBAL CSS — EXTREME LARGE TEXT FOR EVERYTHING
+# GLOBAL CSS — Uniform Large Text + No Scrolling
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
-    /* Unified moderate-large text everywhere */
+    /* Uniform moderate-large text everywhere */
     html, body, p, div, span, label, h1, h2, h3, h4, h5, h6,
     table, th, td, [data-testid="stMetricValue"],
     [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
-        font-size: 1.4vw !important;   /* Perfect readable size */
+        font-size: 1.4vw !important;
         line-height: 1.2 !important;
     }
 
-    /* Remove big Streamlit padding to avoid scrolling */
+    /* Reduce Streamlit layout padding to avoid scrolling */
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 0.5rem !important;
@@ -27,27 +27,36 @@ st.markdown(
         padding-right: 1rem !important;
     }
 
-    /* Prevent charts from overflowing → fit screen width */
+    /* Ensure charts fit screen */
     .vega-embed, canvas {
         max-width: 100% !important;
         height: auto !important;
-    }
-
-    /* Force tabs to not expand vertically */
-    .stTabs [role="tablist"] button {
-        padding-top: 0.2rem !important;
-        padding-bottom: 0.2rem !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.title("BRI-MH: Behavioral Risk Index for Mental Health")
+# -------------------------------------------------------
+# FIX CHART LABEL VISIBILITY (absolute px text)
+# -------------------------------------------------------
+st.markdown(
+    """
+    <style>
+    .vega-embed text {
+        font-size: 22px !important; /* readable and consistent */
+    }
+    .vega-embed .mark-text {
+        font-size: 22px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# -----------------------------
-# Example weekly data
-# -----------------------------
+# -------------------------------------------------------
+# DATA
+# -------------------------------------------------------
 weeks = pd.date_range("2025-07-01", periods=8, freq="W")
 risk_scores = [0.32, 0.41, 0.45, 0.60, 0.52, 0.68, 0.72, 0.65]
 df = pd.DataFrame({"Week": weeks, "BRI Score": risk_scores})
@@ -64,35 +73,38 @@ stressor_list = ["Work stress", "Insomnia", "Family conflict", "Social withdrawa
 
 last_score = df["BRI Score"].iloc[-1]
 
-# -----------------------------
-# Tabs
-# -----------------------------
+# -------------------------------------------------------
+# TABS
+# -------------------------------------------------------
 tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician Panel"])
 
-# ---------------- USER DASHBOARD ----------------
+
+# -------------------------------------------------------
+# USER DASHBOARD
+# -------------------------------------------------------
 with tab1:
     st.markdown("### User Dashboard")
 
     col1, col2, col3 = st.columns(3)
-    col1.metric(label="Average Steps / Day", value="2,100", delta="-20% vs last week")
-    col2.metric(label="Average Sleep", value="5h 10m", delta="-1h 30m")
-    col3.metric(label="Mood Rating", value="2.3 / 5", delta="-0.7")
+    col1.metric("Average Steps / Day", "2,100", "-20% vs last week")
+    col2.metric("Average Sleep", "5h 10m", "-1h 30m")
+    col3.metric("Mood Rating", "2.3 / 5", "-0.7")
 
-    # Line Chart (Large fonts)
+    # Line Chart
     line_chart = (
         alt.Chart(df)
         .mark_line(
-            point=alt.OverlayMarkDef(filled=True, size=350, shape="square"),
-            strokeDash=[5,2],
+            point=alt.OverlayMarkDef(filled=True, size=200, shape="square"),
+            strokeDash=[5, 2],
             color="black"
         )
         .encode(
             x=alt.X("Week:T", title="Week"),
-            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
+            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0, 1])),
         )
-        .properties(width=800, height=450, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(labelFontSize=32, titleFontSize=40)
-        .configure_title(fontSize=50)
+        .properties(width="container", height=320, title="Behavioral Risk Index (Weekly Trend)")
+        .configure_axis(labelFontSize=22, titleFontSize=26)
+        .configure_title(fontSize=28)
     )
     st.altair_chart(line_chart, use_container_width=True)
 
@@ -111,7 +123,10 @@ with tab1:
     else:
         st.markdown("**[STABLE]** Continue consistent behavior. No immediate concerns.")
 
-# ---------------- CLINICIAN DASHBOARD ----------------
+
+# -------------------------------------------------------
+# CLINICIAN DASHBOARD
+# -------------------------------------------------------
 with tab2:
     st.markdown("### Clinician Dashboard")
 
@@ -119,15 +134,15 @@ with tab2:
     with col_chart:
         bar_chart = (
             alt.Chart(contrib_df)
-            .mark_bar(size=60, color="gray")
+            .mark_bar(size=50, color="gray")
             .encode(
                 x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
                 y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
-                tooltip=["Factor", "Contribution"],
+                tooltip=["Factor", "Contribution"]
             )
-            .properties(width=650, height=400, title="Risk Contribution Breakdown")
-            .configure_axis(labelFontSize=32, titleFontSize=40)
-            .configure_title(fontSize=50)
+            .properties(width="container", height=300, title="Risk Contribution Breakdown")
+            .configure_axis(labelFontSize=22, titleFontSize=26)
+            .configure_title(fontSize=28)
         )
         st.altair_chart(bar_chart, use_container_width=True)
 
@@ -146,7 +161,10 @@ with tab2:
     st.markdown("**Detected Cognitive Stressors:**")
     st.markdown(", ".join(stressor_list))
 
-# ---------------- CLINICIAN PANEL ----------------
+
+# -------------------------------------------------------
+# CLINICIAN PANEL
+# -------------------------------------------------------
 with tab3:
     st.markdown("### Multi-Patient Overview")
 
@@ -160,13 +178,13 @@ with tab3:
 
     dist_chart = (
         alt.Chart(patient_df)
-        .mark_bar(size=60, color="gray")
+        .mark_bar(size=50, color="gray")
         .encode(
             x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10), title="BRI Score"),
-            y=alt.Y("count()", title="Number of Patients"),
+            y=alt.Y("count()", title="Number of Patients")
         )
-        .properties(width=800, height=450, title="Distribution of BRI Scores Across Patients")
-        .configure_axis(labelFontSize=32, titleFontSize=40)
-        .configure_title(fontSize=50)
+        .properties(width="container", height=300, title="Distribution of BRI Scores Across Patients")
+        .configure_axis(labelFontSize=22, titleFontSize=26)
+        .configure_title(fontSize=28)
     )
     st.altair_chart(dist_chart, use_container_width=True)
