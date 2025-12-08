@@ -6,51 +6,47 @@ import numpy as np
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
 # -------------------------------------------------------
-# GLOBAL CSS — Large UI Text but DO NOT Affect Charts
+# GLOBAL CSS — Large UI Text, Do NOT Affect Charts, Fix Tabs
 # -------------------------------------------------------
 st.markdown("""
 <style>
 
-/* Apply 1.4vw text everywhere EXCEPT inside Vega charts */
+/************** GLOBAL UI FONT ****************/
 html, body, p, div, span, label, h1, h2, h3, h4, h5, h6,
-table, th, td, [data-testid="stMetricValue"],
-[data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
-    font-size: 1.4vw !important;
-    line-height: 1.2 !important;
+table, th, td, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+[data-testid="stMetricDelta"] {
+    font-size: 1.3vw !important;
     color: black !important;
+    line-height: 1.25 !important;
 }
 
-/* Prevent global scaling from touching Altair charts */
+/************** PROTECT CHARTS ****************/
+/* Prevent global scaling from affecting chart internals */
 .vega-embed * {
-    font-size: unset !important;
-    color: black !important;
+    font-size: initial !important;
 }
 
-.block-container {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+/************** FIXED TABS ****************/
+.stTabs {
+    font-size: 16px !important;
 }
 
-/* Fix Tab Visibility */
 .stTabs [role="tab"] {
-    font-size: 20px !important;
-    padding: 8px 16px !important;
+    font-size: 16px !important;
+    padding: 6px 14px !important;
     color: black !important;
+    border: none !important;
 }
+
 .stTabs [role="tab"][aria-selected="true"] {
-    font-size: 22px !important;
-    font-weight: 700 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
     border-bottom: 3px solid black !important;
-}
-.stTabs [role="tablist"] {
-    overflow-x: auto !important;
-    white-space: nowrap !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # -------------------------------------------------------
@@ -66,11 +62,15 @@ contributions = {
     "Poor Sleep": 0.20,
     "Mood Check-ins": 0.10,
 }
-contrib_df = pd.DataFrame(list(contributions.items()),
-                          columns=["Factor", "Contribution"])
+contrib_df = pd.DataFrame(
+    list(contributions.items()),
+    columns=["Factor", "Contribution"]
+)
 
-stressor_list = ["Work stress", "Insomnia", "Family conflict",
-                 "Social withdrawal", "Financial worries"]
+stressor_list = [
+    "Work stress", "Insomnia", "Family conflict",
+    "Social withdrawal", "Financial worries"
+]
 
 last_score = df["BRI Score"].iloc[-1]
 
@@ -83,10 +83,12 @@ tab1, tab2, tab3 = st.tabs(
 )
 
 
+
 # -------------------------------------------------------
 # USER DASHBOARD
 # -------------------------------------------------------
 with tab1:
+
     st.markdown("### User Dashboard")
 
     col1, col2, col3 = st.columns(3)
@@ -94,23 +96,26 @@ with tab1:
     col2.metric("Average Sleep", "5h 10m", "-1h 30m")
     col3.metric("Mood Rating", "2.3 / 5", "-0.7")
 
+    # ========== LINE CHART ==========
     line_chart = (
         alt.Chart(df)
         .mark_line(
-            point=alt.OverlayMarkDef(filled=True, size=160),
+            point=alt.OverlayMarkDef(filled=True, size=120),
             strokeDash=[5, 2],
             color="black"
         )
         .encode(
             x=alt.X("Week:T", title="Week",
-                    axis=alt.Axis(labelFontSize=18, titleFontSize=20)),
+                    axis=alt.Axis(labelFontSize=16, titleFontSize=18)),
             y=alt.Y("BRI Score:Q", title="BRI Score",
                     scale=alt.Scale(domain=[0, 1]),
-                    axis=alt.Axis(labelFontSize=18, titleFontSize=20))
+                    axis=alt.Axis(labelFontSize=16, titleFontSize=18)),
         )
-        .properties(width=800, height=300,
-                    title=alt.TitleParams("Behavioral Risk Index (Weekly Trend)",
-                                          fontSize=24))
+        .properties(
+            width=700,
+            height=280,
+            title=alt.TitleParams("Behavioral Risk Index (Weekly Trend)", fontSize=22)
+        )
     )
 
     st.altair_chart(line_chart, use_container_width=False)
@@ -126,40 +131,48 @@ with tab1:
     if last_score > 0.7:
         st.markdown("**[HIGH RISK] Seek immediate clinical support.**")
     elif last_score > 0.5:
-        st.markdown("**[MODERATE RISK] Improve sleep and routine consistency.**")
+        st.markdown("**[MODERATE RISK] Improve sleep and mood routines.**")
     else:
         st.markdown("**[STABLE] No immediate concerns.**")
 
 
 
 # -------------------------------------------------------
-# CLINICIAN DASHBOARD — FINAL FIXED BAR CHART
+# CLINICIAN DASHBOARD — PERFECT FIXED BAR CHART
 # -------------------------------------------------------
 with tab2:
+
     st.markdown("### Clinician Dashboard")
 
+    # ========== FINAL FIXED BAR CHART (NO SHRINKING) ==========
     bar_chart = (
         alt.Chart(contrib_df)
-        .mark_bar(size=60, color="gray")
+        .mark_bar(size=55, color="gray")
         .encode(
-            x=alt.X("Contribution:Q",
-                    title="Contribution (Proportion)",
-                    axis=alt.Axis(labelFontSize=18, titleFontSize=20)),
-            y=alt.Y("Factor:N",
-                    sort="-x",
-                    title="Risk Factor",
-                    axis=alt.Axis(labelAngle=0,
-                                  labelFontSize=18,
-                                  titleFontSize=20,
-                                  labelLimit=500))
+            x=alt.X(
+                "Contribution:Q",
+                title="Contribution (Proportion)",
+                axis=alt.Axis(labelFontSize=16, titleFontSize=18)
+            ),
+            y=alt.Y(
+                "Factor:N",
+                sort="-x",
+                title="Risk Factor",
+                axis=alt.Axis(
+                    labelAngle=0,
+                    labelFontSize=16,
+                    titleFontSize=18,
+                    labelLimit=1000
+                )
+            )
         )
         .properties(
-            width=800,
-            height=350,
+            width=700,
+            height=320,
             padding={"left": 120},
             title=alt.TitleParams(
                 "Risk Contribution Breakdown",
-                fontSize=26,
+                fontSize=24,
                 color="black"
             )
         )
@@ -170,19 +183,18 @@ with tab2:
 
     st.markdown("---")
 
+    # ========== RISK STATUS ==========
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
         st.markdown(
-            f"Patient BRI = {last_score:.2f}\nMain contributors: Negative Sentiment, Low Mobility")
+            f"Patient BRI = {last_score:.2f}. Main contributors: Negative Sentiment, Low Mobility")
     elif last_score > 0.5:
         st.markdown("#### Risk Status: **MODERATE**")
         st.markdown(
-            f"Patient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
+            f"Patient BRI = {last_score:.2f}. Contributors: Sleep, Mood Variability")
     else:
         st.markdown("#### Risk Status: **STABLE**")
-        st.markdown(
-            f"Patient BRI = {last_score:.2f}\nContinue monitoring."
-        )
+        st.markdown(f"Patient BRI = {last_score:.2f}. Continue monitoring.")
 
     st.markdown("**Detected Cognitive Stressors:**")
     st.markdown(", ".join(stressor_list))
@@ -193,6 +205,7 @@ with tab2:
 # CLINICIAN PANEL
 # -------------------------------------------------------
 with tab3:
+
     st.markdown("### Multi-Patient Overview")
 
     np.random.seed(42)
@@ -207,21 +220,26 @@ with tab3:
 
     st.table(patient_df)
 
+    # ========== DISTRIBUTION CHART ==========
     dist_chart = (
         alt.Chart(patient_df)
         .mark_bar(size=40, color="gray")
         .encode(
-            x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10),
+            x=alt.X("BRI Score:Q",
+                    bin=alt.Bin(maxbins=10),
                     title="BRI Score",
-                    axis=alt.Axis(labelFontSize=18, titleFontSize=20)),
-            y=alt.Y("count()", title="Number of Patients",
-                    axis=alt.Axis(labelFontSize=18, titleFontSize=20))
+                    axis=alt.Axis(labelFontSize=16, titleFontSize=18)),
+            y=alt.Y("count()",
+                    title="Number of Patients",
+                    axis=alt.Axis(labelFontSize=16, titleFontSize=18)),
         )
         .properties(
-            width=800,
-            height=300,
-            title=alt.TitleParams("Distribution of BRI Scores Across Patients",
-                                  fontSize=24)
+            width=700,
+            height=280,
+            title=alt.TitleParams(
+                "Distribution of BRI Scores Across Patients",
+                fontSize=22
+            )
         )
     )
 
