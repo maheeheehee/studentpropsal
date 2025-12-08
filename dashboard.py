@@ -6,12 +6,11 @@ import numpy as np
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
 # -------------------------------------------------------
-# GLOBAL CSS — Uniform Large Text + No Scrolling
+# GLOBAL CSS — Uniform Text, No Scrolling
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
-    /* Uniform large readable text */
     html, body, p, div, span, label, h1, h2, h3, h4, h5, h6,
     table, th, td, [data-testid="stMetricValue"],
     [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
@@ -19,7 +18,6 @@ st.markdown(
         line-height: 1.2 !important;
     }
 
-    /* Reduce Streamlit padding to avoid scrolling */
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 0.5rem !important;
@@ -27,7 +25,6 @@ st.markdown(
         padding-right: 1rem !important;
     }
 
-    /* Ensure charts fit container */
     .vega-embed, canvas {
         max-width: 100% !important;
         height: auto !important;
@@ -38,16 +35,27 @@ st.markdown(
 )
 
 # -------------------------------------------------------
-# FIX CHART LABEL VISIBILITY
+# CHART LABEL OVERRIDES — Make Axis Text BIG & READABLE
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
-    .vega-embed text {
-        font-size: 22px !important;
+    /* Axis tick labels */
+    .vega-embed .role-axis-label {
+        font-size: 28px !important;
+        font-weight: 600 !important;
     }
-    .vega-embed .mark-text {
-        font-size: 22px !important;
+
+    /* Axis titles */
+    .vega-embed .role-axis-title {
+        font-size: 30px !important;
+        font-weight: 700 !important;
+    }
+
+    /* Any text inside charts */
+    .vega-embed text {
+        font-size: 28px !important;
+        font-weight: 600 !important;
     }
     </style>
     """,
@@ -73,6 +81,7 @@ stressor_list = ["Work stress", "Insomnia", "Family conflict", "Social withdrawa
 
 last_score = df["BRI Score"].iloc[-1]
 
+
 # -------------------------------------------------------
 # TABS
 # -------------------------------------------------------
@@ -90,17 +99,16 @@ with tab1:
     col2.metric("Average Sleep", "5h 10m", "-1h 30m")
     col3.metric("Mood Rating", "2.3 / 5", "-0.7")
 
-    # Line Chart
     line_chart = (
         alt.Chart(df)
         .mark_line(
             point=alt.OverlayMarkDef(filled=True, size=200, shape="square"),
-            strokeDash=[5, 2],
+            strokeDash=[5,2],
             color="black"
         )
         .encode(
             x=alt.X("Week:T", title="Week"),
-            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0, 1])),
+            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
         .properties(width="container", height=320, title="Behavioral Risk Index (Weekly Trend)")
         .configure_axis(labelFontSize=22, titleFontSize=26)
@@ -130,34 +138,40 @@ with tab1:
 with tab2:
     st.markdown("### Clinician Dashboard")
 
-    # Risk Breakdown Bar Chart (FIXED VERSION)
+    # --- FINAL FIXED BAR CHART ---
     bar_chart = (
         alt.Chart(contrib_df)
-        .mark_bar(size=70, color="gray")  # thicker bars so labels align
+        .mark_bar(size=90, color="gray")  # thick bars for screenshot clarity
         .encode(
-            x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
+            x=alt.X(
+                "Contribution:Q",
+                title="Contribution (Proportion)"
+            ),
             y=alt.Y(
                 "Factor:N",
                 sort="-x",
                 title="Risk Factor",
-                axis=alt.Axis(labelFontSize=24, titleFontSize=26, labelLimit=1000)  # FULL LABEL
+                axis=alt.Axis(
+                    labelFontSize=28,
+                    titleFontSize=30,
+                    labelLimit=1000
+                )
             ),
             tooltip=["Factor", "Contribution"]
         )
         .properties(
             width="container",
-            height=450,  # <-- BIGGER HEIGHT to prevent clipping
+            height=500,       # tall for readability + screenshot
             title="Risk Contribution Breakdown"
         )
-        .configure_axis(labelFontSize=24, titleFontSize=26)
-        .configure_title(fontSize=30)
+        .configure_title(fontSize=32)
     )
 
     st.altair_chart(bar_chart, use_container_width=True)
 
     st.markdown("---")
 
-    # Risk status
+    # Risk Status
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
         st.markdown(f"Patient BRI = {last_score:.2f}\nMain contributors: Negative Sentiment, Reduced Mobility")
@@ -182,6 +196,7 @@ with tab3:
     patients = [f"Patient {i}" for i in range(1, 11)]
     bri_scores = np.round(np.random.uniform(0.2, 0.9, len(patients)), 2)
     status = ["High" if s > 0.7 else "Moderate" if s > 0.5 else "Stable" for s in bri_scores]
+
     patient_df = pd.DataFrame({"Patient": patients, "BRI Score": bri_scores, "Status": status})
 
     st.table(patient_df)
@@ -197,4 +212,5 @@ with tab3:
         .configure_axis(labelFontSize=22, titleFontSize=26)
         .configure_title(fontSize=28)
     )
+
     st.altair_chart(dist_chart, use_container_width=True)
