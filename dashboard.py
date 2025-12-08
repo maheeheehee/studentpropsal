@@ -11,36 +11,32 @@ st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 st.markdown(
     """
     <style>
-    /* Make ALL text exactly the same size everywhere */
-    html, body, p, div, span, label, h1, h2, h3, h4, h5, h6, table, th, td {
-        font-size: 4vw !important;      /* Scales text to screen width */
-        line-height: 1.15 !important;   /* Compact so no scrolling */
+    /* Unified moderate-large text everywhere */
+    html, body, p, div, span, label, h1, h2, h3, h4, h5, h6,
+    table, th, td, [data-testid="stMetricValue"],
+    [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
+        font-size: 1.4vw !important;   /* Perfect readable size */
+        line-height: 1.2 !important;
     }
 
-    /* Make Streamlit metric text same size */
-    [data-testid="stMetricValue"],
-    [data-testid="stMetricLabel"],
-    [data-testid="stMetricDelta"] {
-        font-size: 4vw !important;
-    }
-
-    /* Reduce padding to prevent scrolling */
+    /* Remove big Streamlit padding to avoid scrolling */
     .block-container {
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
 
-    /* Make tables compact so they fit screen */
-    table {
-        width: 100% !important;
-    }
-
-    /* Charts auto-shrink to stay on screen */
+    /* Prevent charts from overflowing → fit screen width */
     .vega-embed, canvas {
         max-width: 100% !important;
         height: auto !important;
+    }
+
+    /* Force tabs to not expand vertically */
+    .stTabs [role="tablist"] button {
+        padding-top: 0.2rem !important;
+        padding-bottom: 0.2rem !important;
     }
     </style>
     """,
