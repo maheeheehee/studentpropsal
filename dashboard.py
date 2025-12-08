@@ -6,39 +6,42 @@ import numpy as np
 st.set_page_config(page_title="BRI-MH Dashboard", layout="wide")
 
 # -------------------------------------------------------
-# GLOBAL CSS — EXTREMELY LARGE TEXT FOR EVERYTHING
+# GLOBAL CSS — EXTREME LARGE TEXT FOR EVERYTHING
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
     html, body, [class*="css"]  {
-        font-size: 24px !important;   /* base text */
+        font-size: 38px !important;
     }
 
-    h1 {font-size: 60px !important;}
-    h2 {font-size: 48px !important;}
-    h3 {font-size: 40px !important;}
-    h4 {font-size: 34px !important;}
+    h1 {font-size: 100px !important;}
+    h2 {font-size: 80px !important;}
+    h3 {font-size: 60px !important;}
+    h4 {font-size: 48px !important;}
 
     p, li, span, div, label {
-        font-size: 26px !important;
+        font-size: 38px !important;
+        line-height: 1.4 !important;
     }
 
-    /* Make table text large */
+    /* Larger table text */
     table, th, td {
-        font-size: 26px !important;
+        font-size: 38px !important;
     }
 
-    /* Make Streamlit metric text large */
+    /* Streamlit metric text */
     [data-testid="stMetricValue"] {
-        font-size: 40px !important;
+        font-size: 70px !important;
+        font-weight: 900 !important;
     }
     [data-testid="stMetricLabel"] {
-        font-size: 28px !important;
+        font-size: 45px !important;
     }
     [data-testid="stMetricDelta"] {
-        font-size: 28px !important;
+        font-size: 45px !important;
     }
+
     </style>
     """,
     unsafe_allow_html=True
@@ -82,14 +85,18 @@ with tab1:
     # Line Chart (Large fonts)
     line_chart = (
         alt.Chart(df)
-        .mark_line(point=alt.OverlayMarkDef(filled=True, size=200, shape="square"), strokeDash=[5,2], color="black")
+        .mark_line(
+            point=alt.OverlayMarkDef(filled=True, size=350, shape="square"),
+            strokeDash=[5,2],
+            color="black"
+        )
         .encode(
             x=alt.X("Week:T", title="Week"),
             y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
         )
-        .properties(width=700, height=350, title="Behavioral Risk Index (Weekly Trend)")
-        .configure_axis(labelFontSize=22, titleFontSize=26)
-        .configure_title(fontSize=32)
+        .properties(width=800, height=450, title="Behavioral Risk Index (Weekly Trend)")
+        .configure_axis(labelFontSize=32, titleFontSize=40)
+        .configure_title(fontSize=50)
     )
     st.altair_chart(line_chart, use_container_width=True)
 
@@ -116,15 +123,15 @@ with tab2:
     with col_chart:
         bar_chart = (
             alt.Chart(contrib_df)
-            .mark_bar(color="gray")
+            .mark_bar(size=60, color="gray")
             .encode(
                 x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
                 y=alt.Y("Factor:N", sort="-x", title="Risk Factor"),
                 tooltip=["Factor", "Contribution"],
             )
-            .properties(width=550, height=350, title="Risk Contribution Breakdown")
-            .configure_axis(labelFontSize=22, titleFontSize=26)
-            .configure_title(fontSize=32)
+            .properties(width=650, height=400, title="Risk Contribution Breakdown")
+            .configure_axis(labelFontSize=32, titleFontSize=40)
+            .configure_title(fontSize=50)
         )
         st.altair_chart(bar_chart, use_container_width=True)
 
@@ -157,13 +164,13 @@ with tab3:
 
     dist_chart = (
         alt.Chart(patient_df)
-        .mark_bar(color="gray")
+        .mark_bar(size=60, color="gray")
         .encode(
             x=alt.X("BRI Score:Q", bin=alt.Bin(maxbins=10), title="BRI Score"),
             y=alt.Y("count()", title="Number of Patients"),
         )
-        .properties(width=700, height=350, title="Distribution of BRI Scores Across Patients")
-        .configure_axis(labelFontSize=22, titleFontSize=26)
-        .configure_title(fontSize=32)
+        .properties(width=800, height=450, title="Distribution of BRI Scores Across Patients")
+        .configure_axis(labelFontSize=32, titleFontSize=40)
+        .configure_title(fontSize=50)
     )
     st.altair_chart(dist_chart, use_container_width=True)
