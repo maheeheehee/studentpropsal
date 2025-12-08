@@ -26,7 +26,6 @@ st.markdown(
     }
 
     .vega-embed, canvas {
-        max-width: 100% !important;
         height: auto !important;
     }
     </style>
@@ -35,26 +34,21 @@ st.markdown(
 )
 
 # -------------------------------------------------------
-# CHART LABEL OVERRIDES — Make Axis Text BIG & READABLE
+# CHART LABEL OVERRIDES — BIG TEXT FOR SCREENSHOT
 # -------------------------------------------------------
 st.markdown(
     """
     <style>
-    /* Axis tick labels */
-    .vega-embed .role-axis-label {
-        font-size: 28px !important;
+    .vega-embed text {
+        font-size: 36px !important;
         font-weight: 600 !important;
     }
-
-    /* Axis titles */
     .vega-embed .role-axis-title {
-        font-size: 30px !important;
+        font-size: 40px !important;
         font-weight: 700 !important;
     }
-
-    /* Any text inside charts */
-    .vega-embed text {
-        font-size: 28px !important;
+    .vega-embed .role-axis-label {
+        font-size: 36px !important;
         font-weight: 600 !important;
     }
     </style>
@@ -81,12 +75,10 @@ stressor_list = ["Work stress", "Insomnia", "Family conflict", "Social withdrawa
 
 last_score = df["BRI Score"].iloc[-1]
 
-
 # -------------------------------------------------------
 # TABS
 # -------------------------------------------------------
 tab1, tab2, tab3 = st.tabs(["User Dashboard", "Clinician Dashboard", "Clinician Panel"])
-
 
 # -------------------------------------------------------
 # USER DASHBOARD
@@ -99,16 +91,17 @@ with tab1:
     col2.metric("Average Sleep", "5h 10m", "-1h 30m")
     col3.metric("Mood Rating", "2.3 / 5", "-0.7")
 
+    # Trend chart
     line_chart = (
         alt.Chart(df)
         .mark_line(
             point=alt.OverlayMarkDef(filled=True, size=200, shape="square"),
-            strokeDash=[5,2],
+            strokeDash=[5, 2],
             color="black"
         )
         .encode(
             x=alt.X("Week:T", title="Week"),
-            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0,1])),
+            y=alt.Y("BRI Score:Q", title="Risk Index", scale=alt.Scale(domain=[0, 1])),
         )
         .properties(width="container", height=320, title="Behavioral Risk Index (Weekly Trend)")
         .configure_axis(labelFontSize=22, titleFontSize=26)
@@ -118,71 +111,68 @@ with tab1:
 
     st.markdown("#### Insights")
     st.markdown("""
-        - **Mobility** dropped significantly this week (avg. 2,100 steps/day).  
-        - **Sleep duration** decreased by 1.5 hours compared to last week.  
-        - **Mood check-ins** show lower ratings with frequent *tired* or *sad* entries.  
+        - **Mobility** dropped significantly this week.  
+        - **Sleep** reduced by 1.5 hours.  
+        - **Mood check-ins** show frequent tired/sad entries.  
     """)
 
     st.markdown("#### Recommendation")
     if last_score > 0.7:
-        st.markdown("**[HIGH RISK]** Patient should seek immediate clinical support.")
+        st.markdown("**[HIGH RISK]** Seek immediate clinical support.")
     elif last_score > 0.5:
-        st.markdown("**[MODERATE RISK]** Encourage improved sleep and activity routines.")
+        st.markdown("**[MODERATE RISK]** Improve sleep & mood routines.")
     else:
-        st.markdown("**[STABLE]** Continue consistent behavior. No immediate concerns.")
+        st.markdown("**[STABLE]** No immediate concerns.")
 
 
 # -------------------------------------------------------
-# CLINICIAN DASHBOARD
+# CLINICIAN DASHBOARD (FIXED)
 # -------------------------------------------------------
 with tab2:
     st.markdown("### Clinician Dashboard")
 
-    # --- FINAL FIXED BAR CHART ---
+    # ------------------------------
+    # FIXED LARGE BAR CHART
+    # ------------------------------
     bar_chart = (
-    alt.Chart(contrib_df)
-    .mark_bar(size=120, color="gray")
-    .encode(
-        x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
-        y=alt.Y(
-            "Factor:N",
-            sort="-x",
-            title="Risk Factor",
-            axis=alt.Axis(
-                labelFontSize=36,    # BIG labels
-                titleFontSize=40,
-                labelLimit=1000
+        alt.Chart(contrib_df)
+        .mark_bar(size=120, color="gray")
+        .encode(
+            x=alt.X("Contribution:Q", title="Contribution (Proportion)"),
+            y=alt.Y(
+                "Factor:N",
+                sort="-x",
+                title="Risk Factor",
+                axis=alt.Axis(
+                    labelFontSize=36,
+                    titleFontSize=40,
+                    labelLimit=1000
+                )
+            ),
+            tooltip=["Factor", "Contribution"]
+        )
+        .properties(
+            width=1200,          # FIXED WIDTH (no compression)
+            height=600,          # BIG HEIGHT (readable)
+            title=alt.TitleParams(
+                "Risk Contribution Breakdown",
+                fontSize=42
             )
-        ),
-        tooltip=["Factor", "Contribution"]
-    )
-    .properties(
-        width=1200,     # FIXED WIDTH (no compression)
-        height=600,     # LARGE HEIGHT
-        title=alt.TitleParams(
-            "Risk Contribution Breakdown",
-            fontSize=42
+        )
+        .configure_axis(
+            labelFontSize=36,
+            titleFontSize=40
         )
     )
-    .configure_axis(
-        labelFontSize=36,
-        titleFontSize=40
-    )
-    .configure_title(
-        fontSize=42
-    )
-)
 
-# IMPORTANT: DO NOT USE use_container_width=True
-st.altair_chart(bar_chart, use_container_width=False)
-
+    st.altair_chart(bar_chart, use_container_width=False)
 
     st.markdown("---")
 
     # Risk Status
     if last_score > 0.7:
         st.markdown("#### Risk Status: **HIGH**")
-        st.markdown(f"Patient BRI = {last_score:.2f}\nMain contributors: Negative Sentiment, Reduced Mobility")
+        st.markdown(f"Patient BRI = {last_score:.2f}\nMain: Negative Sentiment, Low Mobility")
     elif last_score > 0.5:
         st.markdown("#### Risk Status: **MODERATE**")
         st.markdown(f"Patient BRI = {last_score:.2f}\nContributors: Sleep, Mood Variability")
